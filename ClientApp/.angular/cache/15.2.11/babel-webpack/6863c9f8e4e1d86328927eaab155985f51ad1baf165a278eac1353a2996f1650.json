@@ -1,0 +1,1 @@
+{"ast":null,"code":"export class ContactDto {\n  constructor() {\n    this.contactId = 0;\n    this.firstName = \"\";\n    this.lastName = \"\";\n    this.email = \"\";\n  }\n}","map":null,"metadata":{},"sourceType":"module","externalDependencies":[]}
