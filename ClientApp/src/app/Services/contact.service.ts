@@ -67,7 +67,7 @@ export class ContactService {
     });
 
     let updateContactURL = this.baseUrl + "weatherforecast/UpdateContact/"
-    return this.http.post(updateContactURL, JSON.stringify(model), { headers })
+    return this.http.put(updateContactURL, JSON.stringify(model), { headers })
       .pipe(
         map((res) => {
 
