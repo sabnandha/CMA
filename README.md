@@ -2,7 +2,7 @@
 
 ## Overview
 
-This project includes various components that demonstrate proficiency in Angular, ASP.NET Core. The main features include a user-friendly interface for managing contacts.
+This project includes various components that demonstrate proficiency in Angular, ASP.NET Core. The main features include a user-friendly interface for managing contacts.The project includes custom middleware to handle authorization and exception management, ensuring secure access and providing detailed error handling.
 
 ## Technologies Used
 
@@ -10,7 +10,7 @@ This project includes various components that demonstrate proficiency in Angular
 - **ASP.NET Core**: For creating a RESTful API to manage contacts.
 - **JSON**: For storing contact data in a file.
 - **Dependency Injection**: Utilized for logging and service management.
--  
+- **Detailed Logging**: Logs request details, errors, and unauthorized access attempts for better debugging and monitoring.
 
 ## Features
 
@@ -54,8 +54,11 @@ cd <repository-folder>
 
 **2.Set Up Angular Client:**
 
-cd client
-npm install
+Open:
+cd clientApp.
+
+Run
+npm install.
 
 **3.Set Up ASP.NET Core API:**
 --> Navigate back to the root directory:

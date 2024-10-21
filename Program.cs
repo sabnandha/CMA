@@ -1,7 +1,24 @@
+using CMA.Common;
+using CMA.Middleware;
 using Microsoft.OpenApi.Models;
-using WebcassE.Reports.WebApi.Abstract;
+using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Configure Serilog
+Log.Logger = new LoggerConfiguration()
+    .WriteTo.Console() // Optional: log to the console
+    .WriteTo.File("Logs/log.txt", rollingInterval: RollingInterval.Day) // Log to a text file, with a new file created daily
+    .CreateLogger();
+
+// Use Serilog for logging
+builder.Logging.ClearProviders(); // Remove other loggers
+builder.Logging.AddSerilog();
+
+// Bind AppConfig
+var appconfig = new AppConfig();
+builder.Configuration.Bind("AnalyticsAppsettings", appconfig);
+builder.Services.AddSingleton(appconfig);
 
 // Add services to the container.
 
@@ -22,9 +39,16 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
+// Register GlobalExceptionMiddleware first to catch any unhandled exceptions
+app.UseMiddleware<GlobalExceptionMiddleware>();
+
+// Register AuthorizationHeaderMiddleware to manipulate the Authorization header
+app.UseMiddleware<AuthorizationHeaderMiddleware>();
+
+
 app.UseHttpsRedirection();
 app.UseStaticFiles();
-app.UseMiddleware<CookieAuthMiddleware>();
+
 app.UseRouting();
 
 // Enable middleware to serve generated Swagger as a JSON endpoint.
@@ -33,7 +57,7 @@ app.UseSwagger();
 // Enable middleware to serve Swagger UI (HTML, JS, CSS, etc.),
 app.UseSwaggerUI(c =>
 {
-    c.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1"); 
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1");
 });
 
 

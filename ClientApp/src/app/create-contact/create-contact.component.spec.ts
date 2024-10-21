@@ -1,34 +1,52 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { of } from 'rxjs';
 import { CreateContactComponent } from './create-contact.component';
 import { ContactService } from '../Services/contact.service';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
-import { ModalModule } from 'ngx-bootstrap/modal';
-import { of } from 'rxjs';
+import { ModalDirective } from 'ngx-bootstrap/modal';
 import { ContactDto } from '../Modal/ContactDto';
-import { NO_ERRORS_SCHEMA } from '@angular/core';
 import { ValidationHelper } from '../Utility/validation-helper';
+
+class MockContactService {
+  getContactsById(id: number) {
+    return of({ contactId: id, email: 'test@example.com', firstName: 'Test', lastName: 'User' } as ContactDto);
+  }
+
+  createContact(contact: ContactDto) {
+    return of(contact);
+  }
+
+  UpdateContact(contact: ContactDto) {
+    return of(contact);
+  }
+}
 
 describe('CreateContactComponent', () => {
   let component: CreateContactComponent;
   let fixture: ComponentFixture<CreateContactComponent>;
-  let contactService: jasmine.SpyObj<ContactService>;
+  let contactService: ContactService;
 
   beforeEach(async () => {
-    const contactServiceSpy = jasmine.createSpyObj('ContactService', ['getContactsById', 'createContact', 'UpdateContact']);
-
     await TestBed.configureTestingModule({
-      declarations: [CreateContactComponent],
-      imports: [ReactiveFormsModule, ModalModule.forRoot()],
+      declarations: [CreateContactComponent, ModalDirective],
+      imports: [ReactiveFormsModule],
       providers: [
         FormBuilder,
-        { provide: ContactService, useValue: contactServiceSpy }
-      ],
-      schemas: [NO_ERRORS_SCHEMA] // Ignore unknown child component templates
+        { provide: ContactService, useClass: MockContactService }
+      ]
     }).compileComponents();
+  });
 
+  beforeEach(() => {
     fixture = TestBed.createComponent(CreateContactComponent);
     component = fixture.componentInstance;
-    contactService = TestBed.inject(ContactService) as jasmine.SpyObj<ContactService>;
+    contactService = TestBed.inject(ContactService);
+
+    // Mock the contactModal to avoid using the real ModalDirective
+    component.contactModal = {
+      show: jasmine.createSpy('show'),
+      hide: jasmine.createSpy('hide')
+    } as unknown as ModalDirective;
 
     fixture.detectChanges();
   });
@@ -37,69 +55,55 @@ describe('CreateContactComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('should initialize form controls', () => {
+  it('should initialize the form with default values', () => {
     expect(component.contactForm).toBeDefined();
-    expect(component.contactForm.controls['email']).toBeDefined();
-    expect(component.contactForm.controls['firstName']).toBeDefined();
-    expect(component.contactForm.controls['lastName']).toBeDefined();
+    expect(component.contactForm.get('contactId')?.value).toBe(0);
+    expect(component.contactForm.get('email')?.value).toBe('');
+    expect(component.contactForm.get('firstName')?.value).toBe('');
+    expect(component.contactForm.get('lastName')?.value).toBe('');
   });
 
-  it('should load contact details when selectedContactId changes', () => {
-    const mockContact: ContactDto = {
-      contactId: 1,
-      email: 'test@example.com',
-      firstName: 'Test',
-      lastName: 'User'
-    };
-    contactService.getContactsById.and.returnValue(of(mockContact));
-    component.selectedContactId = 1;
-    component.isDeleteMode = false;
-
-    component.ngOnChanges({
-      selectedContactId: {
-        currentValue: 1,
-        previousValue: 0,
-        firstChange: false,
-        isFirstChange: () => false
-      }
-    });
-
-    expect(contactService.getContactsById).toHaveBeenCalledWith(1);
-    expect(component.contactForm.value).toEqual({
-      contactId: 1,
-      email: 'test@example.com',
-      firstName: 'Test',
-      lastName: 'User'
-    });
-  });
-
-  it('should open the modal and reset the form', () => {
-    spyOn(component.contactModal, 'show');
+  it('should open the modal and reset the form when openModal is called', () => {
     component.openModal();
-
-    expect(component.contactForm.value).toEqual({
-      contactId: null,
-      email: '',
-      firstName: '',
-      lastName: ''
-    });
+    expect(component.contactForm.get('contactId')?.value).toBeNull();
+    expect(component.contactForm.get('email')?.value).toBe('');
+    expect(component.contactForm.get('firstName')?.value).toBe('');
+    expect(component.contactForm.get('lastName')?.value).toBe('');
     expect(component.contactModal.show).toHaveBeenCalled();
   });
 
-  it('should close the modal and emit closeClick event', () => {
-    spyOn(component.contactModal, 'hide');
+  it('should hide the modal and emit closeClick when closeModal is called', () => {
     spyOn(component.closeClick, 'emit');
 
     component.closeModal();
 
     expect(component.contactModal.hide).toHaveBeenCalled();
     expect(component.closeClick.emit).toHaveBeenCalledWith(true);
+    expect(component.submitted).toBeFalse();
   });
 
-  it('should set submitted to true and validate form fields when saving an invalid form', () => {
-    spyOn(ValidationHelper, 'validateAllFormFields');
-    component.contactForm.controls['email'].setValue(''); // Invalid email
+  it('should load contact details when selectedContactId changes and show the modal', () => {
+    spyOn(contactService, 'getContactsById').and.callThrough();
+    component.selectedContactId = 1;
 
+    component.ngOnChanges({
+      selectedContactId: {
+        currentValue: 1,
+        previousValue: null,
+        firstChange: true,
+        isFirstChange: () => true
+      }
+    });
+
+    expect(contactService.getContactsById).toHaveBeenCalledWith(1);
+    expect(component.contactForm.get('email')?.value).toBe('test@example.com');
+    expect(component.contactModal.show).toHaveBeenCalled();
+  });
+
+  it('should validate the form and show validation errors if invalid on saveContactForm', () => {
+    spyOn(ValidationHelper, 'validateAllFormFields');
+
+    component.contactForm.get('email')?.setValue('');
     component.saveContactForm();
 
     expect(component.submitted).toBeTrue();
@@ -107,9 +111,11 @@ describe('CreateContactComponent', () => {
     expect(component.contactForm.invalid).toBeTrue();
   });
 
-  it('should create a contact when form is valid and contactId is 0', () => {
-    spyOn(component, 'createContact');
-    component.contactForm.patchValue({
+  it('should call createContact if contactId is 0 and form is valid', () => {
+    spyOn(contactService, 'createContact').and.callThrough();
+    spyOn(component, 'handleSaveSuccess').and.callThrough();
+
+    component.contactForm.setValue({
       contactId: 0,
       email: 'test@example.com',
       firstName: 'Test',
@@ -118,17 +124,15 @@ describe('CreateContactComponent', () => {
 
     component.saveContactForm();
 
-    expect(component.createContact).toHaveBeenCalledWith(jasmine.objectContaining({
-      contactId: 0,
-      email: 'test@example.com',
-      firstName: 'Test',
-      lastName: 'User'
-    }));
+    expect(contactService.createContact).toHaveBeenCalled();
+    expect(component.handleSaveSuccess).toHaveBeenCalled();
   });
 
-  it('should update a contact when form is valid and contactId is greater than 0', () => {
-    spyOn(component, 'updateContact');
-    component.contactForm.patchValue({
+  it('should call UpdateContact if contactId is greater than 0 and form is valid', () => {
+    spyOn(contactService, 'UpdateContact').and.callThrough();
+    spyOn(component, 'handleSaveSuccess').and.callThrough();
+
+    component.contactForm.setValue({
       contactId: 1,
       email: 'test@example.com',
       firstName: 'Test',
@@ -137,49 +141,18 @@ describe('CreateContactComponent', () => {
 
     component.saveContactForm();
 
-    expect(component.updateContact).toHaveBeenCalledWith(jasmine.objectContaining({
-      contactId: 1,
-      email: 'test@example.com',
-      firstName: 'Test',
-      lastName: 'User'
-    }));
+    expect(contactService.UpdateContact).toHaveBeenCalled();
+    expect(component.handleSaveSuccess).toHaveBeenCalled();
   });
 
-  it('should create a contact and reset the form after successful creation', () => {
-    const mockContact: ContactDto = {
-      contactId: 0,
-      email: 'test@example.com',
-      firstName: 'Test',
-      lastName: 'User'
-    };
-    spyOn(component.contactModal, 'hide');
+  it('should reset form and hide modal on successful save', () => {
     spyOn(component.saveClick, 'emit');
-    contactService.createContact.and.returnValue(of(mockContact));
 
-    component.createContact(mockContact);
+    component.handleSaveSuccess();
 
-    expect(contactService.createContact).toHaveBeenCalledWith(mockContact);
     expect(component.contactModal.hide).toHaveBeenCalled();
     expect(component.saveClick.emit).toHaveBeenCalledWith(true);
     expect(component.submitted).toBeFalse();
-  });
-
-  it('should update a contact and reset the form after successful update', () => {
-    const mockContact: ContactDto = {
-      contactId: 1,
-      email: 'test@example.com',
-      firstName: 'Test',
-      lastName: 'User'
-    };
-    spyOn(component.contactModal, 'hide');
-    spyOn(component.saveClick, 'emit');
-    contactService.UpdateContact.and.returnValue(of(mockContact));
-
-    component.updateContact(mockContact);
-
-    expect(contactService.UpdateContact).toHaveBeenCalledWith(mockContact);
-    expect(component.contactModal.hide).toHaveBeenCalled();
-    expect(component.saveClick.emit).toHaveBeenCalledWith(true);
-    expect(component.submitted).toBeFalse();
+    expect(component.contactForm.get('contactId')?.value).toBe(0);
   });
 });

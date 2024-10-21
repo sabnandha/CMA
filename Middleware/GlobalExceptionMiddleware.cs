@@ -1,55 +1,44 @@
 ﻿using Newtonsoft.Json;
 
-namespace WebcassE.Reports.WebApi.Abstract
+namespace CMA.Middleware
 {
-    public class CookieAuthMiddleware
+    public class GlobalExceptionMiddleware
     {
-
         private readonly RequestDelegate _next;
-        private readonly ILogger<CookieAuthMiddleware> _logger; 
-        public CookieAuthMiddleware(RequestDelegate next,
-            ILogger<CookieAuthMiddleware> logger)
+        private readonly ILogger<GlobalExceptionMiddleware> _logger;
+
+        public GlobalExceptionMiddleware(RequestDelegate next, ILogger<GlobalExceptionMiddleware> logger)
         {
             _next = next;
-            _logger = logger; 
+            _logger = logger;
         }
 
-        public async Task Invoke(HttpContext context)
+        public async Task InvokeAsync(HttpContext context)
         {
-            String errorMessage = string.Empty;
+            string errorMessage = string.Empty;
             try
             {
-                var Reqtoken = context.Request.Headers["Authorization"];
-
-                if (!string.IsNullOrEmpty(Reqtoken))
-                {
-                    context.Request.Headers.Remove("Authorization"); 
-                    string auth = Reqtoken.ToString().Replace("Bearer ", "").ToString(); 
-                    context.Request.Headers.Add("Authorization", "Bearer " + auth);
-                } 
                 await _next(context);
             }
             catch (Exception ex)
             {
                 context.Response.StatusCode = 500;
-                errorMessage = $"Message : {ex.Message} , InnerException : {ex.InnerException}";
-               // var userName = context.User.Identity.Name;
-              //  var userEmail = context.User.Claims.FirstOrDefault(x => x.Type.Contains("emailaddress"));
-                var ipAddress = context.Connection.RemoteIpAddress.MapToIPv4();
-                var ipv6 = context.Connection.RemoteIpAddress.MapToIPv6();
-                string sessionMessage =  "Custom Exception Message: Session got expired ";
+                errorMessage = $"Message : {ex.Message} , InnerException : {ex.InnerException}"; 
+                var ipAddress = context?.Connection?.RemoteIpAddress?.MapToIPv4();
+                var ipv6 = context?.Connection?.RemoteIpAddress?.MapToIPv6();
+                string sessionMessage = "Custom Exception Message: Session got expired ";
                 string message1 = $"Middleware. we are getting some exception, {sessionMessage} Exception message: {ex.Message}, Inner exception: {ex.InnerException?.Message ?? ""} , Stacktrace: {ex.StackTrace ?? ""}";
                 var message = Environment.NewLine + "Request from Remote IP address IPv4 : " + ipAddress + " IPv6: " + ipv6 + Environment.NewLine +
-                          Environment.NewLine + "Uri : " + context.Request.Path.ToString() +
-                          Environment.NewLine + "Method : " + context.Request.Method +
-                          Environment.NewLine + "Controller : " + context.Request.RouteValues["controller"]?.ToString() +
-                          Environment.NewLine + "Action : " + context.Request.RouteValues["action"]?.ToString() +
+                          Environment.NewLine + "Uri : " + context?.Request.Path.ToString() +
+                          Environment.NewLine + "Method : " + context?.Request.Method +
+                          Environment.NewLine + "Controller : " + context?.Request.RouteValues["controller"]?.ToString() +
+                          Environment.NewLine + "Action : " + context?.Request.RouteValues["action"]?.ToString() +
                           Environment.NewLine + message1 + Environment.NewLine + Environment.NewLine;
             }
             finally
             {
-               
-                if (context.Response.StatusCode == 401 && context.Request.Path.Value != "/api/Account/RefreshToken")
+
+                if (context.Response.StatusCode == 401)
                 {
                     _logger.LogError("Middleware. we are getting some 401 unauthorized ....");
                     var userEmail = context.Request.Headers.FirstOrDefault(item => item.Key == "email").Value;

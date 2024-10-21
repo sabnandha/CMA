@@ -1,8 +1,6 @@
 import { Component, ViewChild } from '@angular/core';
-import { FormControl, FormGroup } from '@angular/forms';
 import { ModalDirective } from 'ngx-bootstrap/modal';
 import { ContactDto } from '../Modal/ContactDto';
-import { ValidationHelper } from '../Utility/validation-helper';
 import { ContactService } from '../Services/contact.service';
 import { CreateContactComponent } from '../create-contact/create-contact.component';
 
@@ -12,8 +10,8 @@ import { CreateContactComponent } from '../create-contact/create-contact.compone
   styleUrls: ['./contact-list.component.css']
 })
 export class ContactListComponent {
-  public contacts: ContactDto[] = []; 
-  selectedContactId: number = 0;
+  public contacts: ContactDto[] = [];
+  selectedContactId: number | null = null;
   @ViewChild('deleteContactModal', { static: true }) deleteContactModal!: ModalDirective;
   @ViewChild('contactComponent', { static: true }) contactComponent!: CreateContactComponent;
   isDeleteMode: boolean = false;
@@ -22,25 +20,25 @@ export class ContactListComponent {
 
   }
   ngOnInit() {
-    this.getContactListOnload(); 
-  } 
-   
+    this.getContactListOnload();
+  }
+
   getContactListOnload() {
     this.selectedContactId = 0;
     this.contactService.getContact().subscribe((x: ContactDto[]) => {
       this.contacts = x;
     })
   }
-  createContact() { 
+  createContact() {
     if (this.contactComponent != undefined) {
       this.contactComponent.openModal();
     }
   }
 
-  
+
   updateContact(contactId: number) {
-    this.selectedContactId = contactId; 
-   
+    this.selectedContactId = contactId;
+
   }
   openDeleteContactModal(contactId: number) {
     this.isDeleteMode = true;
@@ -48,9 +46,9 @@ export class ContactListComponent {
     this.deleteContactModal.show();
   }
   deleteContact() {
-    if (this.selectedContactId > 0) {
-      this.contactService.DeleteContact(this.selectedContactId).subscribe(x => {
-        this.getContactListOnload(); 
+    if (this.selectedContactId! > 0) {
+      this.contactService.DeleteContact(this.selectedContactId!).subscribe(x => {
+        this.getContactListOnload();
         this.closeDeleteModal();
 
       })

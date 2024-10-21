@@ -1,4 +1,4 @@
-﻿namespace CMA.Modal
+﻿namespace CMA.Model
 {
     public class ContactDto
     {

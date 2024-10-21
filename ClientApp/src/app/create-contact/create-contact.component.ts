@@ -11,8 +11,8 @@ import { ContactDto } from '../Modal/ContactDto';
   styleUrls: ['./create-contact.component.css']
 })
 export class CreateContactComponent implements OnInit {
-  @Input() selectedContactId: number = 0;
-  @Input() isDeleteMode: boolean=false;
+  @Input() selectedContactId: number | null = null;
+  @Input() isDeleteMode: boolean = false;
   contactForm!: FormGroup;
   @Output() saveClick = new EventEmitter();
   @Output() closeClick = new EventEmitter();
@@ -21,9 +21,9 @@ export class CreateContactComponent implements OnInit {
   constructor(private formBuilder: FormBuilder,
     private readonly contactService: ContactService) {
     this.contactForm = this.formBuilder.group({
-      contactId:[0],
+      contactId: [0],
       email: [
-        '', 
+        '',
         [
           Validators.required,
           Validators.pattern(/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/)
@@ -34,15 +34,15 @@ export class CreateContactComponent implements OnInit {
     });
   }
   ngOnInit() {
-   
+
   }
   ngOnChanges(changes: SimpleChanges) {
 
     // If selectedContactId changes, update the form and show the modal
     if (changes['selectedContactId'] && this.contactModal && !this.isDeleteMode) {
-      if (this.selectedContactId > 0) {
+      if (this.selectedContactId! > 0) {
         // Load the contact for editing
-        this.contactService.getContactsById(this.selectedContactId).subscribe(contact => {
+        this.contactService.getContactsById(this.selectedContactId!).subscribe(contact => {
           this.contactForm.patchValue({
             contactId: contact.contactId,
             email: contact.email,
@@ -52,10 +52,10 @@ export class CreateContactComponent implements OnInit {
           // Show the modal once the data is loaded
           this.contactModal.show();
         });
-      }  
+      }
     }
   }
- 
+
   openModal() {
     this.contactForm.reset({
       contactId: null,
@@ -66,7 +66,7 @@ export class CreateContactComponent implements OnInit {
     this.contactModal.show();
   }
 
-  closeModal() { 
+  closeModal() {
     this.contactModal.hide();
     this.resetForm(); // Reset form and submitted flag when closing the modal
     this.closeClick.emit(true);
@@ -84,25 +84,25 @@ export class CreateContactComponent implements OnInit {
       ValidationHelper.validateAllFormFields(this.contactForm);
       return;
     }
-  
+
     const contactDto: ContactDto = {
       ...this.contactForm.value,
       contactId: this.contactForm.value.contactId || 0 // Ensure the ID is set to 0 if not provided
     };
-  
-    const saveObservable = contactDto.contactId > 0 
-      ? this.contactService.UpdateContact(contactDto) 
+
+    const saveObservable = contactDto.contactId! > 0
+      ? this.contactService.UpdateContact(contactDto)
       : this.contactService.createContact(contactDto);
-  
+
     saveObservable.subscribe(() => {
       this.handleSaveSuccess();
     });
   }
-  
-  private handleSaveSuccess() {
+
+  handleSaveSuccess() {
     this.contactModal.hide();
     this.saveClick.emit(true);
     this.resetForm(); // Reset form and submitted flag after successful save
   }
-  
+
 }

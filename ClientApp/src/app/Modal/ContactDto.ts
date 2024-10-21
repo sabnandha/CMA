@@ -1,6 +1,6 @@
 export class ContactDto {
-  contactId: number = 0;
-  firstName: string = "";
-  lastName: string = "";
-  email: string = "";
+  contactId: number | null = null;
+  firstName: string | null = null;
+  lastName: string | null = null;
+  email: string | null = null;
 }
