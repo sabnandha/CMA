@@ -15,7 +15,7 @@ export class ContactService {
       'Content-Type': 'application/json'  // Specify JSON content type
     });
 
-    let getContactURL = this.baseUrl + "weatherforecast/GetContacts"
+    let getContactURL = this.baseUrl + "api/contact/GetContacts"
     return this.http.get(getContactURL, { headers })
       .pipe(
         map((res:any) => {
@@ -32,7 +32,7 @@ export class ContactService {
       'Content-Type': 'application/json'  // Specify JSON content type
     });
 
-    let getContactByIdUrl = this.baseUrl + "weatherforecast/GetContactById?contactId=" + contactId;
+    let getContactByIdUrl = this.baseUrl + "api/contact/GetContactById?contactId=" + contactId;
     return this.http.get(getContactByIdUrl, { headers })
       .pipe(
         map((res: any) => {
@@ -49,7 +49,7 @@ export class ContactService {
       'Content-Type': 'application/json'  // Specify JSON content type
     });
 
-    let createContactURL = this.baseUrl +"weatherforecast/AddContact/"
+    let createContactURL = this.baseUrl +"api/contact/AddContact/"
     return this.http.post(createContactURL, JSON.stringify(model), { headers })
       .pipe(
         map((res) => {
@@ -66,8 +66,8 @@ export class ContactService {
       'Content-Type': 'application/json'  // Specify JSON content type
     });
 
-    let updateContactURL = this.baseUrl + "weatherforecast/UpdateContact/"
-    return this.http.post(updateContactURL, JSON.stringify(model), { headers })
+    let updateContactURL = this.baseUrl + "api/contact/UpdateContact/"
+    return this.http.put(updateContactURL, JSON.stringify(model), { headers })
       .pipe(
         map((res) => {
 
@@ -83,7 +83,7 @@ export class ContactService {
       'Content-Type': 'application/json'  // Specify JSON content type
     });
 
-    let deleteContactUrl = this.baseUrl + "weatherforecast/DeleteContact?contactId=" + contactId;
+    let deleteContactUrl = this.baseUrl + "api/contact/DeleteContact?contactId=" + contactId;
     return this.http.delete(deleteContactUrl,{ headers })
       .pipe(
         map((res) => {

@@ -6,7 +6,7 @@ using System.Text.Json;
 namespace CMA.Controllers
 {
     [ApiController]
-    [Route("[controller]")]
+    [Route("api/[controller]")]
     public class ContactController : ControllerBase
     {
         private readonly string _filePath = "contacts.json";
