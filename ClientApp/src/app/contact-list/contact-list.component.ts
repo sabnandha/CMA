@@ -12,9 +12,7 @@ import { CreateContactComponent } from '../create-contact/create-contact.compone
   styleUrls: ['./contact-list.component.css']
 })
 export class ContactListComponent {
-  public contacts: ContactDto[] = [];
-
-  showContactComponent: boolean = false;
+  public contacts: ContactDto[] = []; 
   selectedContactId: number = 0;
   @ViewChild('deleteContactModal', { static: true }) deleteContactModal!: ModalDirective;
   @ViewChild('contactComponent', { static: true }) contactComponent!: CreateContactComponent;
@@ -33,19 +31,15 @@ export class ContactListComponent {
       this.contacts = x;
     })
   }
-  createContact() {
-    this.showContactComponent = true;
+  createContact() { 
     if (this.contactComponent != undefined) {
       this.contactComponent.openModal();
     }
   }
 
-  hideContactComponent() {
-    this.showContactComponent = false;
-  }
+  
   updateContact(contactId: number) {
-    this.selectedContactId = contactId;
-    this.showContactComponent = true;
+    this.selectedContactId = contactId; 
    
   }
   openDeleteContactModal(contactId: number) {

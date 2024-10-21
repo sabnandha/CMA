@@ -84,35 +84,25 @@ export class CreateContactComponent implements OnInit {
       ValidationHelper.validateAllFormFields(this.contactForm);
       return;
     }
-    else {
-      let contactDto: ContactDto = new ContactDto();
-      contactDto = Object.assign({}, this.contactForm.value);
-      if (contactDto.contactId > 0) {
-        this.updateContact(contactDto); 
-      }
-        
-      else {
-        contactDto.contactId=0;
-        this.createContact(contactDto); 
-      }
-        
-     
-    
-    }
+  
+    const contactDto: ContactDto = {
+      ...this.contactForm.value,
+      contactId: this.contactForm.value.contactId || 0 // Ensure the ID is set to 0 if not provided
+    };
+  
+    const saveObservable = contactDto.contactId > 0 
+      ? this.contactService.UpdateContact(contactDto) 
+      : this.contactService.createContact(contactDto);
+  
+    saveObservable.subscribe(() => {
+      this.handleSaveSuccess();
+    });
   }
-  createContact(data: ContactDto) {
-    this.contactService.createContact(data).subscribe(x => {
-      this.contactModal.hide();
-      this.saveClick.emit(true);
-      this.resetForm(); // Reset form and submitted flag after successful save
-    })
+  
+  private handleSaveSuccess() {
+    this.contactModal.hide();
+    this.saveClick.emit(true);
+    this.resetForm(); // Reset form and submitted flag after successful save
   }
-
-  updateContact(data: ContactDto) {
-    this.contactService.UpdateContact(data).subscribe(x => {
-      this.contactModal.hide();
-      this.saveClick.emit(true);
-      this.resetForm(); // Reset form and submitted flag after successful save
-    })
-  }
+  
 }

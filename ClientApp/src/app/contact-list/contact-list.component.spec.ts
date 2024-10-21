@@ -50,9 +50,7 @@ describe('ContactListComponent', () => {
   it('should open create contact modal', () => {
     spyOn(component.contactComponent, 'openModal');
 
-    component.createContact();
-
-    expect(component.showContactComponent).toBeTrue();
+    component.createContact(); 
     expect(component.contactComponent.openModal).toHaveBeenCalled();
   });
 
@@ -60,8 +58,7 @@ describe('ContactListComponent', () => {
     const contactId = 1;
     component.updateContact(contactId);
 
-    expect(component.selectedContactId).toEqual(contactId);
-    expect(component.showContactComponent).toBeTrue();
+    expect(component.selectedContactId).toEqual(contactId); 
   });
 
   it('should open delete contact modal', () => {
@@ -97,10 +94,5 @@ describe('ContactListComponent', () => {
     expect(component.isDeleteMode).toBeFalse();
     expect(component.selectedContactId).toBe(0);
     expect(component.deleteContactModal.hide).toHaveBeenCalled();
-  });
-
-  it('should hide the contact component', () => {
-    component.hideContactComponent();
-    expect(component.showContactComponent).toBeFalse();
-  });
+  }); 
 });
