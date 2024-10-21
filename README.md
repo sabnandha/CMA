@@ -10,7 +10,7 @@ This project includes various components that demonstrate proficiency in Angular
 - **ASP.NET Core**: For creating a RESTful API to manage contacts.
 - **JSON**: For storing contact data in a file.
 - **Dependency Injection**: Utilized for logging and service management.
--  
+  
 
 ## Features
 
@@ -24,11 +24,11 @@ This project includes various components that demonstrate proficiency in Angular
 ### ASP.NET Core API for Contact Management
 
 - **Contact Management Endpoints**:
-  - **GET /Contact/GetContacts**: Retrieves a list of all contacts.
-  - **GET /Contact/GetContactById**: Retrieves a specific contact by ID.
-  - **POST /Contact/AddContact**: Adds a new contact to the list.
-  - **PUT /Contact/UpdateContact**: Updates an existing contact's details.
-  - **DELETE /Contact/DeleteContact**: Deletes a contact by ID.
+  - **GET api/contact/GetContacts**: Retrieves a list of all contacts.
+  - **GET api/contact/GetContactById**: Retrieves a specific contact by ID.
+  - **POST api/contact/AddContact**: Adds a new contact to the list.
+  - **PUT api/contact/UpdateContact**: Updates an existing contact's details.
+  - **DELETE api/contact/DeleteContact**: Deletes a contact by ID.
 
 - **Custom Error Handling Middleware**:
   - **CookieAuthMiddleware**: Custom middleware that handles authorization token processing and provides detailed error responses for various status codes (404, 401, 500).
