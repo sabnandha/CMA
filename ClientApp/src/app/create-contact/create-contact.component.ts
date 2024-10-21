@@ -57,7 +57,12 @@ export class CreateContactComponent implements OnInit {
   }
  
   openModal() {
-    this.contactForm.reset();
+    this.contactForm.reset({
+      contactId: null,
+      email: '',
+      firstName: '',
+      lastName: ''
+    });
     this.contactModal.show();
   }
 
